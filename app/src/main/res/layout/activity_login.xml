@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0A0A0F"
+    android:fillViewport="true">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="28dp"
+        android:gravity="center_horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🎫"
+            android:textSize="52sp"
+            android:layout_marginTop="60dp"
+            android:layout_marginBottom="16dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Antrian Online"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="8dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Masuk untuk melanjutkan ✨"
+            android:textSize="14sp"
+            android:textColor="#8B8FA8"
+            android:layout_marginBottom="40dp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card_dark"
+            android:padding="24dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="USERNAME"
+                android:textSize="11sp"
+                android:textColor="#8B8FA8"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="8dp"/>
+            <EditText
+                android:id="@+id/etUsername"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:hint="Masukkan username"
+
+                android:textColor="#FFFFFF"
+                android:inputType="text"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:background="@drawable/bg_input_dark"
+                android:layout_marginBottom="20dp"
+                android:textSize="14sp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PASSWORD"
+                android:textSize="11sp"
+                android:textColor="#8B8FA8"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="8dp"/>
+            <EditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:hint="Masukkan password"
+
+                android:textColor="#FFFFFF"
+                android:inputType="textPassword"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:background="@drawable/bg_input_dark"
+                android:layout_marginBottom="28dp"
+                android:textSize="14sp"/>
+            <Button
+                android:id="@+id/btnLogin"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:text="Masuk →"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/bg_button_gradient"
+                android:stateListAnimator="@null"/>
+        </LinearLayout>
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:indeterminateTint="#A855F7"
+            android:visibility="gone"/>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="32dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Belum punya akun? "
+                android:textColor="#8B8FA8"
+                android:textSize="14sp"/>
+            <TextView
+                android:id="@+id/tvDaftar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Daftar Sekarang"
+                android:textColor="#A855F7"
+                android:textStyle="bold"
+                android:textSize="14sp"/>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

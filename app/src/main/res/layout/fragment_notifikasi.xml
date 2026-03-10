@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0A0A0F">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_card_dark"
+        android:padding="20dp"
+
+        android:gravity="center_vertical">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Notifikasi 🔔" android:textColor="#FFFFFF" android:textSize="20sp" android:textStyle="bold"/>
+        <TextView android:id="@+id/tvReadAll" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tandai Semua" android:textColor="#A855F7" android:textSize="13sp" android:textStyle="bold" android:padding="4dp"/>
+    </LinearLayout>
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvNotifikasi"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="12dp"
+            android:clipToPadding="false"/>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+</LinearLayout>
