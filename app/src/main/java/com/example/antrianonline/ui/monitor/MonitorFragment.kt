@@ -15,6 +15,7 @@ import com.example.antrianonline.data.api.RetrofitClient
 import com.example.antrianonline.data.repository.AntrianRepository
 import com.example.antrianonline.data.repository.Result
 import com.example.antrianonline.databinding.FragmentMonitorBinding
+import com.example.antrianonline.ui.ulasan.UlasanDialog
 import com.example.antrianonline.utils.NotificationHelper
 import com.example.antrianonline.utils.SessionManager
 import kotlinx.coroutines.launch
@@ -28,12 +29,15 @@ class MonitorFragment : Fragment() {
     private lateinit var adapter: MonitorAdapter
     private lateinit var notifHelper: NotificationHelper
     private val handler = Handler(Looper.getMainLooper())
-    private var selectedLoketId = 1
+
+    private var selectedLoketId  = 1
     private var lastStatus: String? = null
     private var myNoAntrian: String? = null
+    private var myIdRiwayat: Int?   = null   // ← BARU: simpan id_riwayat
+    private var myNamaLoket: String = ""     // ← BARU: simpan nama loket
+    private var myIdLoket: Int      = 0      // ← BARU: simpan id_loket
+    private var sudahTampilUlasan   = false  // ← BARU: flag agar dialog hanya muncul 1x
     private var countDownTimer: CountDownTimer? = null
-
-    // Simpan estimasi terakhir agar tidak reset setiap refresh
     private var lastEstimasiMenit: Int = -1
 
     private val refreshRunnable = object : Runnable {
@@ -43,7 +47,9 @@ class MonitorFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
         _binding = FragmentMonitorBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -51,13 +57,13 @@ class MonitorFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val session = SessionManager(requireContext())
-        repo = AntrianRepository(RetrofitClient.getApi(session))
-        notifHelper = NotificationHelper(requireContext())
+        val session  = SessionManager(requireContext())
+        repo         = AntrianRepository(RetrofitClient.getApi(session))
+        notifHelper  = NotificationHelper(requireContext())
 
         adapter = MonitorAdapter()
         binding.rvAntrian.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvAntrian.adapter = adapter
+        binding.rvAntrian.adapter       = adapter
 
         loadAntrianSaya()
         binding.swipeRefresh.setOnRefreshListener { loadMonitor() }
@@ -68,18 +74,21 @@ class MonitorFragment : Fragment() {
             when (val result = repo.getAntrianSaya()) {
                 is Result.Success -> {
                     val aktif = result.data.firstOrNull {
-                        it.status == "menunggu" || it.status == "dipanggil"
+                        it.status == "menunggu" || it.status == "dipanggil" || it.status == "dilayani"
                     }
                     if (aktif != null) {
                         selectedLoketId = aktif.loket?.idLoket ?: 1
                         myNoAntrian     = aktif.noAntrian
+                        myIdRiwayat     = aktif.idRiwayat  // ← simpan id_riwayat
+                        myNamaLoket     = aktif.loket?.nama ?: ""
+                        myIdLoket       = aktif.loket?.idLoket ?: 0
                         lastStatus      = aktif.status
                         binding.tvNomorSaya.text = aktif.noAntrian ?: "-"
                     } else {
-                        binding.tvNomorSaya.text  = "-"
-                        binding.tvPosisi.text     = "-"
-                        binding.tvEstimasi.text   = "-"
-                        binding.tvCountdown.text  = "⏱ Belum ada antrian aktif"
+                        binding.tvNomorSaya.text = "-"
+                        binding.tvPosisi.text    = "-"
+                        binding.tvEstimasi.text  = "-"
+                        binding.tvCountdown.text = "⏱ Belum ada antrian aktif"
                     }
                     loadMonitor()
                 }
@@ -89,11 +98,102 @@ class MonitorFragment : Fragment() {
         }
     }
 
+    private fun loadMonitor() {
+        binding.swipeRefresh.isRefreshing = true
+        lifecycleScope.launch {
+            when (val result = repo.getMonitor(selectedLoketId)) {
+                is Result.Success -> {
+                    val data = result.data
+                    binding.tvSedangDilayani.text = "Sedang Dilayani: ${data.sedangDilayani}"
+                    binding.tvTotalMenunggu.text  = "Menunggu: ${data.totalMenunggu} orang"
+                    adapter.submitList(data.daftarAntrian)
+                    binding.swipeRefresh.isRefreshing = false
+
+                    myNoAntrian?.let { noAntrian ->
+                        val list    = data.daftarAntrian
+                        val myIndex = list.indexOfFirst { it.noAntrian == noAntrian }
+
+                        if (myIndex >= 0) {
+                            val estimasi = if (myIndex == 0) 0 else myIndex * 5
+                            binding.tvPosisi.text   = "${myIndex + 1}"
+                            binding.tvEstimasi.text = if (estimasi == 0) "< 1" else "$estimasi"
+                            startCountdown(estimasi)
+                        }
+
+                        // Cek perubahan status
+                        val myAntrian = list.firstOrNull { it.noAntrian == noAntrian }
+                        myAntrian?.let {
+                            val newStatus = it.status
+                            if (newStatus != lastStatus) {
+                                when (newStatus) {
+                                    "dipanggil" -> {
+                                        notifHelper.showNotification(
+                                            "🔔 Giliran Anda!",
+                                            "Nomor $noAntrian dipanggil! Segera menuju loket.",
+                                            isUrgent = true
+                                        )
+                                        countDownTimer?.cancel()
+                                        lastEstimasiMenit    = -1
+                                        binding.tvCountdown.text = "🔔 Giliran Anda sekarang!"
+                                    }
+                                    "dilayani" -> {
+                                        notifHelper.showNotification(
+                                            "✅ Sedang Dilayani",
+                                            "Nomor $noAntrian sedang dilayani."
+                                        )
+                                    }
+                                    "selesai" -> {
+                                        notifHelper.showNotification(
+                                            "🎉 Selesai",
+                                            "Antrian $noAntrian telah selesai."
+                                        )
+                                        countDownTimer?.cancel()
+                                        lastEstimasiMenit    = -1
+                                        binding.tvCountdown.text = "✅ Antrian selesai"
+
+                                        // ── BARU: tampilkan dialog ulasan ──────
+                                        tampilkanDialogUlasan()
+                                    }
+                                }
+                                lastStatus = newStatus
+                            }
+                        }
+                    }
+                }
+                is Result.Error -> {
+                    binding.swipeRefresh.isRefreshing = false
+                    Toast.makeText(requireContext(), result.message, Toast.LENGTH_SHORT).show()
+                }
+                else -> {}
+            }
+        }
+    }
+
+    /**
+     * Tampilkan UlasanDialog setelah antrian selesai.
+     * Flag sudahTampilUlasan memastikan dialog hanya muncul 1 kali per sesi.
+     */
+    private fun tampilkanDialogUlasan() {
+        if (sudahTampilUlasan) return
+        val idRiwayat = myIdRiwayat ?: return
+        if (myIdLoket == 0) return
+
+        sudahTampilUlasan = true
+
+        // Tunda 1 detik agar animasi "selesai" terlihat dulu
+        binding.root.postDelayed({
+            if (!isAdded || parentFragmentManager.isDestroyed) return@postDelayed
+            UlasanDialog.newInstance(
+                idLoket   = myIdLoket,
+                idRiwayat = idRiwayat,
+                namaLoket = myNamaLoket
+            ).show(childFragmentManager, "dialog_ulasan")
+        }, 1000)
+    }
+
     private fun startCountdown(estimasiMenit: Int) {
-        // Hanya restart countdown jika estimasi BERUBAH (beda posisi)
         if (estimasiMenit == lastEstimasiMenit) return
         lastEstimasiMenit = estimasiMenit
-
         countDownTimer?.cancel()
 
         if (estimasiMenit <= 0) {
@@ -114,75 +214,6 @@ class MonitorFragment : Fragment() {
                 binding.tvCountdown.text = "🔔 Sebentar lagi giliran Anda!"
             }
         }.start()
-    }
-
-    private fun loadMonitor() {
-        binding.swipeRefresh.isRefreshing = true
-        lifecycleScope.launch {
-            when (val result = repo.getMonitor(selectedLoketId)) {
-                is Result.Success -> {
-                    val data = result.data
-                    binding.tvSedangDilayani.text = "Sedang Dilayani: ${data.sedangDilayani}"
-                    binding.tvTotalMenunggu.text  = "Menunggu: ${data.totalMenunggu} orang"
-                    adapter.submitList(data.daftarAntrian)
-                    binding.swipeRefresh.isRefreshing = false
-
-                    myNoAntrian?.let { noAntrian ->
-                        val list    = data.daftarAntrian
-                        val myIndex = list.indexOfFirst { it.noAntrian == noAntrian }
-
-                        if (myIndex >= 0) {
-                            // Posisi 1 = giliran berikutnya, estimasi = posisi * 5 menit
-                            // Posisi 1 → 0 menit (hampir dipanggil)
-                            // Posisi 2 → 5 menit, dst
-                            val estimasi = if (myIndex == 0) 0 else myIndex * 5
-                            binding.tvPosisi.text   = "${myIndex + 1}"
-                            binding.tvEstimasi.text = if (estimasi == 0) "< 1" else "$estimasi"
-                            startCountdown(estimasi)
-                        }
-
-                        // Cek perubahan status
-                        val myAntrian = list.firstOrNull { it.noAntrian == noAntrian }
-                        myAntrian?.let {
-                            val newStatus = it.status
-                            if (newStatus != lastStatus) {
-                                when (newStatus) {
-                                    "dipanggil" -> {
-                                        notifHelper.showNotification(
-                                            "🔔 Giliran Anda!",
-                                            "Nomor $noAntrian dipanggil! Segera menuju loket.",
-                                            isUrgent = true
-                                        )
-                                        countDownTimer?.cancel()
-                                        lastEstimasiMenit = -1
-                                        binding.tvCountdown.text = "🔔 Giliran Anda sekarang!"
-                                    }
-                                    "dilayani" -> notifHelper.showNotification(
-                                        "✅ Sedang Dilayani",
-                                        "Nomor $noAntrian sedang dilayani."
-                                    )
-                                    "selesai" -> {
-                                        notifHelper.showNotification(
-                                            "🎉 Selesai",
-                                            "Antrian $noAntrian telah selesai."
-                                        )
-                                        countDownTimer?.cancel()
-                                        lastEstimasiMenit = -1
-                                        binding.tvCountdown.text = "✅ Antrian selesai"
-                                    }
-                                }
-                                lastStatus = newStatus
-                            }
-                        }
-                    }
-                }
-                is Result.Error -> {
-                    binding.swipeRefresh.isRefreshing = false
-                    Toast.makeText(requireContext(), result.message, Toast.LENGTH_SHORT).show()
-                }
-                else -> {}
-            }
-        }
     }
 
     override fun onResume() {

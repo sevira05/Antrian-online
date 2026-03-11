@@ -3,6 +3,9 @@ package com.example.antrianonline.data.api
 import com.example.antrianonline.data.model.*
 import retrofit2.Response
 import retrofit2.http.*
+import com.example.antrianonline.data.model.UlasanRequest
+import com.example.antrianonline.data.model.UlasanResponse
+import com.example.antrianonline.data.model.KirimUlasanResponse
 
 interface ApiService {
 
@@ -48,4 +51,16 @@ interface ApiService {
 
     @PATCH("notifikasi/read-all")
     suspend fun readAll(): Response<ApiResponse<Any>>
+
+    /// ── Ulasan ─────────────────────────────
+
+    @POST("ulasan")
+    suspend fun kirimUlasan(
+        @Body request: UlasanRequest
+    ): Response<KirimUlasanResponse>
+
+    @GET("ulasan/{id_loket}")
+    suspend fun getUlasanLoket(
+        @Path("id_loket") idLoket: Int
+    ): Response<UlasanResponse>
 }

@@ -13,6 +13,10 @@
         android:icon="@android:drawable/ic_popup_reminder"
         android:title="Notifikasi"/>
     <item
+        android:id="@+id/nav_ulasan"
+        android:icon="@drawable/ic_star"
+        android:title="Ulasan"/>
+    <item
         android:id="@+id/nav_profil"
         android:icon="@android:drawable/ic_menu_myplaces"
         android:title="Profil"/>
