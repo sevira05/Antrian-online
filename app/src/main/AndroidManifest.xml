@@ -1,18 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- PERMISSIONS -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+    <!-- Wajib untuk Android 13+ agar notifikasi bisa muncul -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <!-- Untuk getaran -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
+    <!-- Untuk full-screen intent (muncul saat layar terkunci) -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/Theme.AntrianOnline"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        tools:targetApi="31">
 
-        <!-- Login -->
+        <!-- LOGIN -->
         <activity
             android:name=".ui.auth.LoginActivity"
             android:exported="true">
@@ -24,28 +36,26 @@
 
         </activity>
 
-        <!-- Register -->
+        <!-- REGISTER -->
         <activity
             android:name=".ui.auth.RegisterActivity"
             android:exported="false"/>
 
-        <!-- Home -->
+        <!-- HOME -->
         <activity
             android:name=".ui.home.HomeActivity"
             android:exported="false"/>
 
-        <!-- ===================== -->
+        <!-- PROFIL -->
+        <activity
+            android:name=".ui.profil.EditProfilActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".ui.profil.GantiPasswordActivity"
+            android:exported="false"/>
+
         <!-- FITUR ULASAN -->
-        <!-- ===================== -->
-
-        <activity
-            android:name=".ui.ulasan.UlasanLoketActivity"
-            android:exported="false"/>
-
-        <activity
-            android:name=".ui.ulasan.UlasanActivity"
-            android:exported="false"/>
-
         <activity
             android:name=".ui.ulasan.KirimUlasanActivity"
             android:exported="false"/>

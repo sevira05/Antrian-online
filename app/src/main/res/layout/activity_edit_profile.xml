@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="#0F1020"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- TITLE -->
+
+        <TextView
+            android:text="Edit Profil"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="20dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <!-- CARD FORM -->
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="8dp"
+            android:backgroundTint="#17182F">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <!-- Nama -->
+
+                <TextView
+                    android:text="Nama Lengkap"
+                    android:textColor="#BBBBFF"
+                    android:textSize="12sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <EditText
+                    android:id="@+id/etNama"
+                    android:hint="Masukkan nama"
+                    android:textColor="#FFFFFF"
+                    android:textColorHint="#8888AA"
+                    android:background="@drawable/bg_input"
+                    android:padding="14dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <!-- Username -->
+
+                <TextView
+                    android:text="Username"
+                    android:textColor="#BBBBFF"
+                    android:textSize="12sp"
+                    android:layout_marginTop="16dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <EditText
+                    android:id="@+id/etUsername"
+                    android:hint="Masukkan username"
+                    android:textColor="#FFFFFF"
+                    android:textColorHint="#8888AA"
+                    android:background="@drawable/bg_input"
+                    android:padding="14dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <!-- Email -->
+
+                <TextView
+                    android:text="Email"
+                    android:textColor="#BBBBFF"
+                    android:textSize="12sp"
+                    android:layout_marginTop="16dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <EditText
+                    android:id="@+id/etEmail"
+                    android:hint="Masukkan email"
+                    android:textColor="#FFFFFF"
+                    android:textColorHint="#8888AA"
+                    android:background="@drawable/bg_input"
+                    android:padding="14dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <!-- No HP -->
+
+                <TextView
+                    android:text="No HP"
+                    android:textColor="#BBBBFF"
+                    android:textSize="12sp"
+                    android:layout_marginTop="16dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <EditText
+                    android:id="@+id/etNoHp"
+                    android:hint="Masukkan nomor HP"
+                    android:textColor="#FFFFFF"
+                    android:textColorHint="#8888AA"
+                    android:background="@drawable/bg_input"
+                    android:padding="14dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <!-- BUTTON -->
+
+                <Button
+                    android:id="@+id/btnSimpan"
+                    android:text="Simpan Perubahan"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    android:layout_marginTop="24dp"
+                    android:background="@drawable/bg_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"/>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
+</ScrollView>

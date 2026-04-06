@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Saat normal -->
+    <item>
+        <vector
+            android:width="24dp"
+            android:height="24dp"
+            android:viewportWidth="24"
+            android:viewportHeight="24">
+
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M12,2C10.34,2 9,3.34 9,5V6.26C6.67,7.17 5,9.39 5,12V17L3,19V20H21V19L19,17V12C19,9.39 17.33,7.17 15,6.26V5C15,3.34 13.66,2 12,2Z"/>
+        </vector>
+    </item>
+
+</selector>

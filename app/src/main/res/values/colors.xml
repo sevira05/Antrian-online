@@ -1,5 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+
+    <!-- ── Warna Utama Navy & Biru ── -->
+    <color name="navy_mid">#1E3B63</color>         <!-- Header gradient bawah -->
+    <color name="blue_primary">#1A4DB8</color>     <!-- Tombol utama, aksen aktif -->
+    <color name="blue_light">#6EA8E8</color>        <!-- Teks aksen di atas navy -->
+    <color name="blue_muted">#7AA0CC</color>        <!-- Subtitle di header -->
+    <color name="blue_card">#EEF3FC</color>         <!-- Background card terpilih -->
+
+    <!-- ── Background ── -->
+    <color name="bg_page">#F0F4F9</color>           <!-- Background halaman utama -->
+    <color name="bg_white">#FFFFFF</color>          <!-- Card, input -->
+    <color name="bg_input">#FFFFFF</color>          <!-- Input field -->
+
+    <!-- ── Teks ── -->     <!-- Judul, teks utama -->
+    <color name="text_secondary">#374151</color>    <!-- Teks isi notifikasi -->
+    <color name="text_muted">#7A8FA8</color>        <!-- Label, hint, subtitle -->
+    <color name="text_hint">#AABCCD</color>         <!-- Placeholder input -->
+    <color name="text_white">#FFFFFF</color>
+
+    <!-- ── Border ── -->
+    <color name="border_default">#D1DAE8</color>    <!-- Border card, input -->
+    <color name="border_selected">#1A4DB8</color>   <!-- Border card terpilih -->
+    <color name="border_divider">#E2EBF4</color>    <!-- Divider tipis -->
+
+    <!-- ── Status ── -->
+    <color name="green_dot">#22C55E</color>
+    <color name="green_ring">#DCFCE7</color>
+    <color name="amber_text">#C47C0A</color>
+    <color name="red_bar">#E24B4A</color>
+
+    <!-- ── Notifikasi ── -->
+    <color name="notif_yellow_bg">#FEF9EC</color>
+    <color name="notif_yellow_border">#F5D87A</color>
+    <color name="notif_yellow_text">#7A4F00</color>
+    <color name="notif_green_bg">#F0FAF4</color>
+    <color name="notif_green_border">#86EFAC</color>
+    <color name="notif_blue_bg">#EEF3FC</color>
+    <color name="notif_blue_border">#BFDBFE</color>
+
+    <!-- ── Progress bar ── -->
+    <color name="progress_bg">#DCE6F4</color>
+    <color name="progress_fill">#1A4DB8</color>
+    <color name="progress_fill_red">#E24B4A</color>
+
+
+    <!-- Warna Hijau (status buka / success) -->
+    <color name="green">#22C55E</color>
+
+    <!-- Warna teks utama (dark) -->
+    <color name="text_dark">#1E293B</color>
+
+    <color name="navy_dark">#1E3A5F</color>
+    <color name="blue_soft">#B0C4DE</color>
+    <color name="text_primary">#1E293B</color>
+
 </resources>

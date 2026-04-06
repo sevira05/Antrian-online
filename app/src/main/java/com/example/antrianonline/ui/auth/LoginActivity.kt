@@ -26,7 +26,7 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         session = SessionManager(this)
-        repo    = AntrianRepository(RetrofitClient.getApi(session))
+        repo    = AntrianRepository(RetrofitClient.getApi(session), session)
 
         if (session.isLoggedIn()) {
             goHome()
@@ -34,6 +34,9 @@ class LoginActivity : AppCompatActivity() {
         }
 
         binding.btnLogin.setOnClickListener { doLogin() }
+        binding.btnDaftar.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
+        }
         binding.tvDaftar.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
         }
@@ -52,14 +55,14 @@ class LoginActivity : AppCompatActivity() {
         lifecycleScope.launch {
             when (val result = repo.login(username, password)) {
                 is Result.Success -> {
-                    val user = result.data.user
+                    val user = result.data.user ?: run { setLoading(false); return@launch }
                     session.saveSession(
-                        token    = result.data.token,
+                        token    = result.data.token ?: "",
                         userId   = user.idUser,
                         username = user.username,
                         nama     = user.namaLengkap,
                         email    = user.email,
-                        noHp     = user.noHp
+                        noHp     = user.noHp ?: ""
                     )
                     goHome()
                 }

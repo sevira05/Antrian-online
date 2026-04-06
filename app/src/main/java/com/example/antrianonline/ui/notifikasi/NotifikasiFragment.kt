@@ -4,70 +4,65 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import com.example.antrianonline.data.model.Notifikasi
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.antrianonline.data.api.RetrofitClient
-import com.example.antrianonline.data.repository.AntrianRepository
-import com.example.antrianonline.data.repository.Result
 import com.example.antrianonline.databinding.FragmentNotifikasiBinding
 import com.example.antrianonline.utils.SessionManager
-import kotlinx.coroutines.launch
 
 class NotifikasiFragment : Fragment() {
 
     private var _binding: FragmentNotifikasiBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var repo: AntrianRepository
+    private lateinit var session: SessionManager
     private lateinit var adapter: NotifikasiAdapter
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
         _binding = FragmentNotifikasiBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        val session = SessionManager(requireContext())
-        repo = AntrianRepository(RetrofitClient.getApi(session))
+        session = SessionManager(requireContext())
 
         adapter = NotifikasiAdapter()
         binding.rvNotifikasi.layoutManager = LinearLayoutManager(requireContext())
         binding.rvNotifikasi.adapter = adapter
 
-        binding.swipeRefresh.setOnRefreshListener { loadNotifikasi() }
-        binding.tvReadAll.setOnClickListener { readAll() }
+        binding.swipeRefresh.setOnRefreshListener {
+            loadNotif()
+        }
 
-        loadNotifikasi()
+        binding.tvReadAll.setOnClickListener {
+            session.clearNotif()
+            loadNotif()
+        }
+
+        loadNotif()
     }
 
-    private fun loadNotifikasi() {
-        binding.swipeRefresh.isRefreshing = true
-        lifecycleScope.launch {
-            when (val result = repo.getNotifikasi()) {
-                is Result.Success -> {
-                    binding.swipeRefresh.isRefreshing = false
-                    adapter.submitList(result.data.data)
-                    val unread = result.data.unreadCount
-                    binding.tvReadAll.text = if (unread > 0) "Tandai Semua ($unread)" else "Semua Dibaca ✓"
-                }
-                is Result.Error -> {
-                    binding.swipeRefresh.isRefreshing = false
-                    Toast.makeText(requireContext(), result.message, Toast.LENGTH_SHORT).show()
-                }
-                else -> {}
-            }
-        }
-    }
+    private fun loadNotif() {
+        val data = session.getNotif()
 
-    private fun readAll() {
-        lifecycleScope.launch {
-            repo.markReadAll()
-            loadNotifikasi()
+        val list: List<Notifikasi> = data.mapIndexed { index: Int, triple: Triple<String, String, String> ->
+
+            Notifikasi(
+                idNotif = index,
+                judul = triple.first,
+                pesan = triple.second,
+                createdAt = triple.third,
+                isRead = false
+            )
         }
+
+        adapter.submitList(list)
+        binding.swipeRefresh.isRefreshing = false
+
+        binding.tvReadAll.text =
+            if (list.isNotEmpty()) "Hapus Semua" else "Tidak ada notifikasi"
     }
 
     override fun onDestroyView() {

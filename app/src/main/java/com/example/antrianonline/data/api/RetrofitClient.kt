@@ -10,44 +10,35 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
-    private var apiService: ApiService? = null
-
     fun getApi(session: SessionManager): ApiService {
-
-        if (apiService == null) {
-
-            val logging = HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            }
-
-            val client = OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .addInterceptor(logging)
-                .addInterceptor { chain ->
-
-                    val token = session.getToken()
-
-                    val requestBuilder = chain.request().newBuilder()
-                        .addHeader("Accept", "application/json")
-
-                    if (!token.isNullOrEmpty()) {
-                        requestBuilder.addHeader("Authorization", "Bearer $token")
-                    }
-
-                    chain.proceed(requestBuilder.build())
-                }
-                .build()
-
-            val retrofit = Retrofit.Builder()
-                .baseUrl(BuildConfig.BASE_URL)
-                .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-
-            apiService = retrofit.create(ApiService::class.java)
+        val logging = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
         }
 
-        return apiService!!
+        val client = OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .addInterceptor(logging)
+            .addInterceptor { chain ->
+                val token = session.getToken()
+                val requestBuilder = chain.request().newBuilder()
+                    .addHeader("Accept", "application/json")
+
+                // Token akan diambil secara realtime dari SessionManager setiap ada request
+                if (!token.isNullOrEmpty()) {
+                    requestBuilder.addHeader("Authorization", "Bearer $token")
+                }
+
+                chain.proceed(requestBuilder.build())
+            }
+            .build()
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl(BuildConfig.BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        return retrofit.create(ApiService::class.java)
     }
 }

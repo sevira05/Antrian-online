@@ -40,11 +40,11 @@ class ProfilFragment : Fragment() {
         }
 
         binding.btnEditProfil.setOnClickListener {
-            Toast.makeText(requireContext(), "Fitur segera hadir ✨", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(requireContext(), EditProfilActivity::class.java))
         }
 
         binding.btnGantiPassword.setOnClickListener {
-            Toast.makeText(requireContext(), "Fitur segera hadir 🔒", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(requireContext(), GantiPasswordActivity::class.java))
         }
     }
 

@@ -1,125 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0A0A0F"
-    android:fillViewport="true">
+    android:orientation="vertical"
+    android:background="@color/bg_page">
+
+    <!-- Header Navy -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/navy_dark"
         android:orientation="vertical"
-        android:padding="28dp"
-        android:gravity="center_horizontal">
+        android:gravity="center"
+        android:paddingTop="60dp"
+        android:paddingBottom="36dp"
+        android:paddingLeft="32dp"
+        android:paddingRight="32dp">
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🎫"
-            android:textSize="52sp"
-            android:layout_marginTop="60dp"
-            android:layout_marginBottom="16dp"/>
+            android:text="🏢"
+            android:textSize="44sp"
+            android:layout_marginBottom="12dp"/>
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Antrian Online"
-            android:textSize="32sp"
-            android:textStyle="bold"
+            android:text="ANTRIAN ONLINE"
             android:textColor="#FFFFFF"
-            android:layout_marginBottom="8dp"/>
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp"/>
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Masuk untuk melanjutkan ✨"
-            android:textSize="14sp"
-            android:textColor="#8B8FA8"
-            android:layout_marginBottom="40dp"/>
+            android:text="SISTEM ANTRIAN DIGITAL"
+            android:textColor="#7AA0CC"
+            android:textSize="11sp"/>
+
+    </LinearLayout>
+
+    <!-- Form -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/bg_card_dark"
             android:padding="24dp">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="USERNAME"
-                android:textSize="11sp"
-                android:textColor="#8B8FA8"
+                android:text="Masuk ke Akun"
+                android:textColor="#1A2E50"
+                android:textSize="20sp"
                 android:textStyle="bold"
-                android:letterSpacing="0.1"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="20dp"/>
+
             <EditText
                 android:id="@+id/etUsername"
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:hint="Masukkan username"
-
-                android:textColor="#FFFFFF"
+                android:layout_height="50dp"
+                android:hint="Username"
+                android:textColor="#1A2E50"
                 android:inputType="text"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:background="@drawable/bg_input_dark"
-                android:layout_marginBottom="20dp"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp"
+                android:background="@android:drawable/edit_text"
+                android:layout_marginBottom="12dp"
                 android:textSize="14sp"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="PASSWORD"
-                android:textSize="11sp"
-                android:textColor="#8B8FA8"
-                android:textStyle="bold"
-                android:letterSpacing="0.1"
-                android:layout_marginBottom="8dp"/>
+
             <EditText
                 android:id="@+id/etPassword"
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:hint="Masukkan password"
-
-                android:textColor="#FFFFFF"
+                android:layout_height="50dp"
+                android:hint="Password"
+                android:textColor="#1A2E50"
                 android:inputType="textPassword"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:background="@drawable/bg_input_dark"
-                android:layout_marginBottom="28dp"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp"
+                android:background="@android:drawable/edit_text"
+                android:layout_marginBottom="20dp"
                 android:textSize="14sp"/>
+
             <Button
                 android:id="@+id/btnLogin"
                 android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:text="Masuk →"
-                android:textSize="16sp"
-                android:textStyle="bold"
+                android:layout_height="52dp"
+                android:text="MASUK"
+                android:backgroundTint="#1A4DB8"
                 android:textColor="#FFFFFF"
-                android:background="@drawable/bg_button_gradient"
-                android:stateListAnimator="@null"/>
-        </LinearLayout>
-        <ProgressBar
-            android:id="@+id/progressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:indeterminateTint="#A855F7"
-            android:visibility="gone"/>
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="32dp">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Belum punya akun? "
-                android:textColor="#8B8FA8"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="10dp"/>
+
+            <Button
+                android:id="@+id/btnDaftar"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Belum punya akun? Daftar"
+                android:backgroundTint="@android:color/transparent"
+                android:textColor="#1A4DB8"
                 android:textSize="14sp"/>
+
+            <!-- tvDaftar tersembunyi (dipakai di code) -->
             <TextView
                 android:id="@+id/tvDaftar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Daftar Sekarang"
-                android:textColor="#A855F7"
-                android:textStyle="bold"
-                android:textSize="14sp"/>
+                android:text="Daftar"
+                android:visibility="gone"/>
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="12dp"
+                android:visibility="gone"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Layanan tersedia mulai pukul 06.00 s/d jam operasional"
+                android:textColor="#7A8FA8"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:layout_marginTop="20dp"/>
+
         </LinearLayout>
-    </LinearLayout>
-</ScrollView>
+    </ScrollView>
+</LinearLayout>

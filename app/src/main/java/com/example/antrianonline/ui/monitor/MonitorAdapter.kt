@@ -13,25 +13,26 @@ class MonitorAdapter : ListAdapter<Antrian, MonitorAdapter.VH>(DiffCb()) {
 
     inner class VH(val b: ItemAntrianMonitorBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(antrian: Antrian) {
-            b.tvNoAntrian.text     = antrian.noAntrian
-            b.tvNamaUser.text      = antrian.loket?.nama ?: "-"
-            b.tvWaktu.text         = antrian.tanggalJam
-            b.tvStatusMonitor.text = antrian.status.uppercase()
+            b.tvNoAntrian.text = antrian.noAntrian
+            b.tvNamaUser.text  = antrian.loket?.nama ?: ""
+            b.tvWaktu.text     = antrian.tanggalJam
 
-            val (bgColor, textColor) = when (antrian.status) {
-                "dilayani"  -> Pair("#1A3D2B", "#4ADE80")
-                "dipanggil" -> Pair("#3D2E1A", "#FCD34D")
-                "menunggu"  -> Pair("#1A1F3D", "#818CF8")
-                else        -> Pair("#1E1E2E", "#8B8FA8")
+            val (statusText, textColor) = when (antrian.status) {
+                "dilayani"  -> Pair("DILAYANI",  "#22C55E")
+                "dipanggil" -> Pair("DIPANGGIL", "#C47C0A")
+                "menunggu"  -> Pair("MENUNGGU",  "#1A4DB8")
+                "selesai"   -> Pair("SELESAI",   "#7A8FA8")
+                "batal"     -> Pair("BATAL",     "#E24B4A")
+                else        -> Pair(antrian.status.uppercase(), "#7A8FA8")
             }
-            b.root.setCardBackgroundColor(Color.parseColor(bgColor))
-            b.tvStatusMonitor.setTextColor(Color.parseColor(textColor))
+            b.tvStatus.text = statusText
+            b.tvStatus.setTextColor(Color.parseColor(textColor))
+            b.tvStatusMonitor.text = ""
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-        return VH(ItemAntrianMonitorBinding.inflate(LayoutInflater.from(parent.context), parent, false))
-    }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
+        VH(ItemAntrianMonitorBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
     override fun onBindViewHolder(holder: VH, position: Int) = holder.bind(getItem(position))
 

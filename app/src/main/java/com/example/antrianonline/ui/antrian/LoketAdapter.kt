@@ -1,11 +1,10 @@
 package com.example.antrianonline.ui.antrian
 
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.*
 import com.example.antrianonline.data.model.Loket
 import com.example.antrianonline.databinding.ItemLoketBinding
 
@@ -15,36 +14,65 @@ class LoketAdapter(
 
     private var selectedPos = -1
 
+    private val iconMap = mapOf(
+        "umum" to "🏛️",
+        "keuangan" to "💰",
+        "kesehatan" to "🏥",
+        "administrasi" to "📋"
+    )
+
     inner class VH(val b: ItemLoketBinding) : RecyclerView.ViewHolder(b.root) {
+
         fun bind(loket: Loket, isSelected: Boolean) {
-            b.tvNamaLoket.text      = loket.nama
-            b.tvPengelola.text      = "Pengelola: ${loket.pengelola}"
-            b.tvJam.text            = "${loket.jamBuka} - ${loket.jamTutup}"
-            b.tvSisaKuota.text      = "${loket.totalDiambil}/${loket.maxAntrian} antrian"
-            b.progressKuota.max     = loket.maxAntrian
-            b.progressKuota.progress = loket.totalDiambil
+
+            val key = loket.nama.lowercase()
+            b.tvIcon.text = iconMap.entries
+                .firstOrNull { key.contains(it.key) }?.value ?: "🏢"
+
+            b.tvNamaLoket.text = loket.nama
+            b.tvPengelola.text = "Pengelola: ${loket.pengelola}"
+            b.tvJam.text = "${loket.jamBuka} - ${loket.jamTutup}"
+            b.tvSisaKuota.text = "${loket.totalDiambil}/${loket.maxAntrian}"
+
+            val persen = if (loket.maxAntrian > 0)
+                (loket.totalDiambil * 100) / loket.maxAntrian else 0
+
+            b.progressKuota.progress = persen
+
+            val color = when {
+                persen >= 80 -> "#EF4444"
+                persen >= 50 -> "#F59E0B"
+                else -> "#22C55E"
+            }
+
+            b.progressKuota.progressTintList =
+                ColorStateList.valueOf(Color.parseColor(color))
+
+            b.tvStatus.text = loket.statusLoket
 
             val statusColor = when (loket.statusLoket) {
-                "BUKA"       -> Color.parseColor("#22c55e")
-                "PENUH"      -> Color.parseColor("#ef4444")
-                "TUTUP"      -> Color.parseColor("#94a3b8")
-                "BELUM_BUKA" -> Color.parseColor("#f59e0b")
-                else         -> Color.GRAY
+                "BUKA" -> "#22C55E"
+                "PENUH" -> "#EF4444"
+                else -> "#94A3B8"
             }
-            b.tvStatus.text      = loket.statusLoket.replace("_", " ")
-            b.tvStatus.setTextColor(statusColor)
 
-            b.root.isSelected = isSelected
-            b.root.cardElevation = if (isSelected) 8f else 2f
+            b.tvStatus.setTextColor(Color.parseColor(statusColor))
+
+            b.cardLoket.strokeWidth = if (isSelected) 3 else 0
+
+            val isActive = loket.statusLoket == "BUKA"
+            b.root.alpha = if (isActive) 1f else 0.5f
 
             b.root.setOnClickListener {
-                if (loket.statusLoket == "BUKA") {
-                    val old = selectedPos
-                    selectedPos = adapterPosition
-                    notifyItemChanged(old)
-                    notifyItemChanged(selectedPos)
-                    onSelect(loket)
-                }
+                if (!isActive) return@setOnClickListener
+
+                val old = selectedPos
+                selectedPos = adapterPosition
+
+                notifyItemChanged(old)
+                notifyItemChanged(selectedPos)
+
+                onSelect(loket)
             }
         }
     }

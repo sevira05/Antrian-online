@@ -26,7 +26,7 @@ class RegisterActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         session = SessionManager(this)
-        repo    = AntrianRepository(RetrofitClient.getApi(session))
+        repo    = AntrianRepository(RetrofitClient.getApi(session), session)
 
         binding.btnDaftar.setOnClickListener { doRegister() }
         binding.tvLogin.setOnClickListener   { finish() }
@@ -53,26 +53,32 @@ class RegisterActivity : AppCompatActivity() {
         lifecycleScope.launch {
             when (val result = repo.register(nama, username, email, noHp, password, confirm)) {
                 is Result.Success -> {
-                    val user = result.data.user
+                    val token = result.data.token ?: ""
+                    val user  = result.data.user
+
+                    // Simpan session — pakai data user jika ada, fallback ke input form
                     session.saveSession(
-                        token    = result.data.token,
-                        userId   = user.idUser,
-                        username = user.username,
-                        nama     = user.namaLengkap,
-                        email    = user.email,
-                        noHp     = user.noHp
+                        token    = token,
+                        userId   = user?.idUser ?: 0,
+                        username = user?.username ?: username,
+                        nama     = user?.namaLengkap ?: nama,
+                        email    = user?.email ?: email,
+                        noHp     = user?.noHp ?: noHp
                     )
+
+                    // Langsung ke Home
                     startActivity(Intent(this@RegisterActivity, HomeActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     })
+                    finish()
                 }
                 is Result.Error -> {
                     setLoading(false)
                     Toast.makeText(this@RegisterActivity, result.message, Toast.LENGTH_LONG).show()
                 }
-                else -> {}
+                else -> { setLoading(false) }
             }
-        }
+        } 
     }
 
     private fun setLoading(loading: Boolean) {

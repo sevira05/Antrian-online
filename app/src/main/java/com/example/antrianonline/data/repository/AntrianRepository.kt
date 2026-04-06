@@ -1,103 +1,103 @@
 package com.example.antrianonline.data.repository
 
+import com.example.antrianonline.data.api.AmbilAntrianRequest
 import com.example.antrianonline.data.api.ApiService
-import com.example.antrianonline.data.model.*
+import com.example.antrianonline.data.api.LoginRequest
+import com.example.antrianonline.data.api.RegisterRequest
+import com.example.antrianonline.data.api.UpdatePasswordRequest
+import com.example.antrianonline.data.api.UpdateProfilRequest
+import com.example.antrianonline.data.model.UlasanRequest
+import com.example.antrianonline.utils.SessionManager
+import org.json.JSONObject
+import retrofit2.Response
 
+// ── Sealed Result ─────────────────────────────────────────────────────────────
 sealed class Result<out T> {
     data class Success<T>(val data: T) : Result<T>()
     data class Error(val message: String) : Result<Nothing>()
     object Loading : Result<Nothing>()
 }
 
-class AntrianRepository(private val api: ApiService) {
+// ── Repository ────────────────────────────────────────────────────────────────
+class AntrianRepository(
+    private val api: ApiService,
+    private val session: SessionManager
+) {
+    private val token get() = "Bearer ${session.getToken()}"
 
-    // ── Auth ──────────────────────────────────────────────────────────────
-    suspend fun register(namaLengkap: String, username: String, email: String,
-                         noHp: String, password: String, passwordConfirm: String
-    ): Result<LoginResponse> = safeCall {
-        val body = mapOf(
-            "nama_lengkap"          to namaLengkap,
-            "username"              to username,
-            "email"                 to email,
-            "no_hp"                 to noHp,
-            "password"              to password,
-            "password_confirmation" to passwordConfirm,
+    // Auth
+    suspend fun login(username: String, password: String) =
+        safeCall { api.login(LoginRequest(username = username, password = password)) }
+
+    suspend fun register(
+        nama: String, username: String, email: String,
+        noHp: String, password: String, confirm: String
+    ) = safeCall {
+        api.register(
+            RegisterRequest(
+                nama_lengkap          = nama,
+                username              = username,
+                email                 = email,
+                no_hp                 = noHp,
+                password              = password,
+                password_confirmation = confirm
+            )
         )
-        val res = api.register(body)
-        if (res.isSuccessful && res.body()?.success == true) {
-            Result.Success(res.body()!!.data!!)
-        } else {
-            Result.Error(res.body()?.message ?: "Registrasi gagal")
+    }
+
+    suspend fun logout() = safeCall { api.logout(token) }
+
+    // Loket
+    suspend fun getLoket()     = safeCall { api.getLoket(token) }
+    suspend fun getLoketList() = safeCall { api.getLoket(token) }
+
+    // Antrian
+    suspend fun getAntrianSaya()              = safeCall { api.getAntrianSaya(token) }
+    suspend fun ambilAntrian(idLoket: Int)    = safeCall { api.ambilAntrian(token, AmbilAntrianRequest(idLoket)) }
+    suspend fun batalAntrian()                = safeCall { api.batalAntrian(token) }
+
+    // Monitor
+    suspend fun getMonitor(idLoket: Int)      = safeCall { api.getMonitor(token, idLoket) }
+
+    // Notifikasi
+    suspend fun getNotifikasi()               = safeCall { api.getNotifikasi(token) }
+    suspend fun markReadAll()                 = safeCall { api.readAllNotifikasi(token) }
+
+    // Profil
+    suspend fun getProfil()                   = safeCall { api.getProfil(token) }
+    suspend fun updateProfil(nama: String, email: String, noHp: String) =
+        safeCall { api.updateProfil(token, UpdateProfilRequest(nama, email, noHp)) }
+    suspend fun updatePassword(lama: String, baru: String, confirm: String) =
+        safeCall { api.updatePassword(token, UpdatePasswordRequest(lama, baru, confirm)) }
+
+    // Ulasan
+    suspend fun kirimUlasan(idLoket: Int, idRiwayat: Int, rating: Int, komentar: String?) =
+        safeCall {
+            api.kirimUlasan(token, UlasanRequest(
+                idLoket   = idLoket,
+                idRiwayat = idRiwayat,
+                rating    = rating,
+                komentar  = komentar
+            ))
         }
-    }
+    suspend fun getUlasanLoket(idLoket: Int)  = safeCall { api.getUlasanLoket(token, idLoket) }
 
-    suspend fun login(username: String, password: String): Result<LoginResponse> = safeCall {
-        val res = api.login(mapOf("username" to username, "password" to password))
-        if (res.isSuccessful && res.body()?.success == true) {
-            Result.Success(res.body()!!.data!!)
-        } else {
-            Result.Error(res.body()?.message ?: "Login gagal")
-        }
-    }
-
-    suspend fun logout(): Result<Boolean> = safeCall {
-        api.logout()
-        Result.Success(true)
-    }
-
-    // ── Loket ─────────────────────────────────────────────────────────────
-    suspend fun getLoketList(): Result<List<Loket>> = safeCall {
-        val res = api.getLoketList()
-        if (res.isSuccessful) Result.Success(res.body()?.data ?: emptyList())
-        else Result.Error("Gagal memuat daftar loket")
-    }
-
-    // ── Antrian ───────────────────────────────────────────────────────────
-    suspend fun ambilAntrian(idLoket: Int): Result<AntrianResponse> = safeCall {
-        val res = api.ambilAntrian(mapOf("id_loket" to idLoket))
-        if (res.isSuccessful && res.body()?.success == true) {
-            Result.Success(res.body()!!.data!!)
-        } else {
-            Result.Error(res.body()?.message ?: "Gagal mengambil antrian")
-        }
-    }
-
-    suspend fun getAntrianSaya(): Result<List<Antrian>> = safeCall {
-        val res = api.getAntrianSaya()
-        if (res.isSuccessful) Result.Success(res.body()?.data ?: emptyList())
-        else Result.Error("Gagal memuat antrian")
-    }
-
-    suspend fun getMonitor(idLoket: Int): Result<MonitorData> = safeCall {
-        val res = api.getMonitor(idLoket)
-        if (res.isSuccessful) Result.Success(res.body()!!.data)
-        else Result.Error("Gagal memuat monitor")
-    }
-
-    suspend fun batalAntrian(id: Int): Result<Boolean> = safeCall {
-        val res = api.batalAntrian(id)
-        if (res.isSuccessful) Result.Success(true)
-        else Result.Error(res.body()?.message ?: "Gagal membatalkan antrian")
-    }
-
-    // ── Notifikasi ────────────────────────────────────────────────────────
-    suspend fun getNotifikasi(): Result<NotifListResponse> = safeCall {
-        val res = api.getNotifikasi()
-        if (res.isSuccessful) Result.Success(res.body()!!)
-        else Result.Error("Gagal memuat notifikasi")
-    }
-
-    suspend fun markReadAll(): Result<Boolean> = safeCall {
-        api.readAll()
-        Result.Success(true)
-    }
-
-    // ── Helper ────────────────────────────────────────────────────────────
-    private suspend fun <T> safeCall(block: suspend () -> Result<T>): Result<T> {
+    // Helper
+    private suspend fun <T> safeCall(call: suspend () -> Response<T>): Result<T> {
         return try {
-            block()
+            val resp = call()
+            if (resp.isSuccessful) {
+                val body = resp.body()
+                if (body != null) Result.Success(body)
+                else Result.Error("Response kosong.")
+            } else {
+                val msg = resp.errorBody()?.string()
+                    ?.let { runCatching { JSONObject(it).optString("message", it) }.getOrNull() }
+                    ?: "Error ${resp.code()}"
+                Result.Error(msg)
+            }
         } catch (e: Exception) {
-            Result.Error("Koneksi gagal: ${e.localizedMessage}")
+            Result.Error("Koneksi bermasalah: ${e.localizedMessage}")
         }
     }
 }

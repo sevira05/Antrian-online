@@ -28,7 +28,7 @@ class AntrianService : Service() {
     companion object {
         const val FOREGROUND_CHANNEL_ID = "antrian_service_channel"
         const val FOREGROUND_NOTIF_ID   = 9999
-        const val CHECK_INTERVAL_MS     = 15_000L // cek tiap 15 detik
+        const val CHECK_INTERVAL_MS     = 15_000L
 
         fun start(context: Context) {
             val intent = Intent(context, AntrianService::class.java)
@@ -47,12 +47,13 @@ class AntrianService : Service() {
     private lateinit var session: SessionManager
     private lateinit var repo: AntrianRepository
     private lateinit var notifHelper: NotificationHelper
+
     private val handler = Handler(Looper.getMainLooper())
     private val scope   = CoroutineScope(Dispatchers.IO + Job())
 
-    private var lastStatus: String?    = null
-    private var myNoAntrian: String?   = null
-    private var selectedLoketId: Int   = 1
+    private var lastStatus: String? = null
+    private var myNoAntrian: String? = null
+    private var selectedLoketId: Int = 1
 
     private val checkRunnable = object : Runnable {
         override fun run() {
@@ -64,7 +65,8 @@ class AntrianService : Service() {
     override fun onCreate() {
         super.onCreate()
         session     = SessionManager(this)
-        repo        = AntrianRepository(RetrofitClient.getApi(session))
+        // ✅ Constructor baru — pakai 2 parameter
+        repo        = AntrianRepository(RetrofitClient.getApi(session), session)
         notifHelper = NotificationHelper(this)
         createForegroundChannel()
     }
@@ -72,7 +74,7 @@ class AntrianService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground(FOREGROUND_NOTIF_ID, buildForegroundNotification())
         handler.post(checkRunnable)
-        return START_STICKY // restart otomatis jika dibunuh sistem
+        return START_STICKY
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -82,17 +84,16 @@ class AntrianService : Service() {
         handler.removeCallbacks(checkRunnable)
     }
 
+    // ── Cek antrian aktif user ────────────────────────────────────────────────
+    // AntrianResponse.data = List<Antrian>
     private fun checkAntrian() {
-        if (!session.isLoggedIn()) {
-            stopSelf()
-            return
-        }
+        if (!session.isLoggedIn()) { stopSelf(); return }
 
         scope.launch {
-            // Cari antrian aktif milik user
             when (val result = repo.getAntrianSaya()) {
                 is Result.Success -> {
-                    val aktif = result.data.firstOrNull {
+                    val list    = result.data.data          // List<Antrian>
+                    val aktif   = list.firstOrNull {
                         it.status == "menunggu" || it.status == "dipanggil"
                     }
                     if (aktif != null) {
@@ -101,7 +102,6 @@ class AntrianService : Service() {
                         if (lastStatus == null) lastStatus = aktif.status
                         checkMonitor()
                     } else {
-                        // Tidak ada antrian aktif, reset
                         myNoAntrian = null
                         lastStatus  = null
                     }
@@ -111,16 +111,17 @@ class AntrianService : Service() {
         }
     }
 
+    // ── Cek status di monitor loket ───────────────────────────────────────────
+    // MonitorResponse.data = Antrian? (antrian yang sedang dilayani)
     private fun checkMonitor() {
         scope.launch {
             when (val result = repo.getMonitor(selectedLoketId)) {
                 is Result.Success -> {
                     val noAntrian = myNoAntrian ?: return@launch
-                    val list      = result.data.daftarAntrian
-                    val myAntrian = list.firstOrNull { it.noAntrian == noAntrian }
+                    val sedang    = result.data.data        // Antrian? (yg dilayani saat ini)
 
-                    myAntrian?.let {
-                        val newStatus = it.status
+                    if (sedang != null && sedang.noAntrian == noAntrian) {
+                        val newStatus = sedang.status
                         if (newStatus != lastStatus) {
                             when (newStatus) {
                                 "dipanggil" -> notifHelper.showNotification(
@@ -146,15 +147,14 @@ class AntrianService : Service() {
         }
     }
 
+    // ── Foreground notification ───────────────────────────────────────────────
     private fun createForegroundChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 FOREGROUND_CHANNEL_ID,
                 "Antrian Berjalan",
-                NotificationManager.IMPORTANCE_LOW // low agar tidak berisik
-            ).apply {
-                description = "Memantau status antrian Anda"
-            }
+                NotificationManager.IMPORTANCE_LOW
+            ).apply { description = "Memantau status antrian Anda" }
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(channel)
         }

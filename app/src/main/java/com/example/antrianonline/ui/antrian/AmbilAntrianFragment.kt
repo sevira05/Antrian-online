@@ -2,30 +2,28 @@ package com.example.antrianonline.ui.antrian
 
 import android.app.AlertDialog
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.antrianonline.data.api.RetrofitClient
 import com.example.antrianonline.data.model.Loket
-import com.example.antrianonline.data.repository.AntrianRepository
-import com.example.antrianonline.data.repository.Result
 import com.example.antrianonline.databinding.FragmentAmbilAntrianBinding
-import com.example.antrianonline.utils.WorkManagerHelper
+import com.example.antrianonline.utils.NotificationHelper
 import com.example.antrianonline.utils.SessionManager
-import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 class AmbilAntrianFragment : Fragment() {
 
     private var _binding: FragmentAmbilAntrianBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var repo: AntrianRepository
     private lateinit var adapter: LoketAdapter
+    private lateinit var session: SessionManager
+    private lateinit var notifHelper: NotificationHelper
+
     private var selectedLoket: Loket? = null
+    private var currentList = mutableListOf<Loket>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentAmbilAntrianBinding.inflate(inflater, container, false)
@@ -33,85 +31,80 @@ class AmbilAntrianFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+        session = SessionManager(requireContext())
+        notifHelper = NotificationHelper(requireContext())
 
-        val session = SessionManager(requireContext())
-        repo = AntrianRepository(RetrofitClient.getApi(session))
-
-        adapter = LoketAdapter { loket ->
-            selectedLoket = loket
-            binding.btnAmbil.isEnabled = (loket.statusLoket == "BUKA")
-            binding.tvSelectedLoket.text = "Dipilih: ${loket.nama} (Sisa: ${loket.sisaKuota})"
+        adapter = LoketAdapter {
+            selectedLoket = it
+            binding.btnAmbil.isEnabled = true
+            binding.tvSelectedLoket.text =
+                "✓ ${it.nama} (Sisa: ${it.maxAntrian - it.totalDiambil})"
         }
 
         binding.rvLoket.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvLoket.adapter       = adapter
+        binding.rvLoket.adapter = adapter
 
-        binding.swipeRefresh.setOnRefreshListener { loadLoket() }
         binding.btnAmbil.setOnClickListener { konfirmasiAmbil() }
 
-        loadLoket()
+        loadData()
     }
 
-    private fun loadLoket() {
-        binding.swipeRefresh.isRefreshing = true
-        lifecycleScope.launch {
-            when (val result = repo.getLoketList()) {
-                is Result.Success -> {
-                    adapter.submitList(result.data)
-                    binding.swipeRefresh.isRefreshing = false
-                }
-                is Result.Error -> {
-                    binding.swipeRefresh.isRefreshing = false
-                    Toast.makeText(requireContext(), result.message, Toast.LENGTH_SHORT).show()
-                }
-                else -> {}
-            }
-        }
+    private fun loadData() {
+        currentList = mutableListOf(
+            Loket(1,"Layanan Umum","-", "Petugas A",20,"08:00","16:00",0,0,"BUKA"),
+            Loket(2,"Keuangan","-", "Petugas B",20,"08:00","16:00",0,0,"BUKA"),
+            Loket(3,"Kesehatan","-", "Petugas C",20,"08:00","16:00",0,0,"BUKA"),
+            Loket(4,"Administrasi","-", "Petugas D",20,"08:00","16:00",0,0,"BUKA")
+        )
+
+        adapter.submitList(currentList.toList())
     }
 
     private fun konfirmasiAmbil() {
         val loket = selectedLoket ?: return
+
         AlertDialog.Builder(requireContext())
-            .setTitle("Konfirmasi Antrian")
-            .setMessage("Ambil nomor antrian untuk:\n\n${loket.nama}\nPengelola: ${loket.pengelola}\nSisa kuota: ${loket.sisaKuota}")
+            .setTitle("Konfirmasi")
+            .setMessage("Ambil antrian di ${loket.nama}?")
             .setPositiveButton("Ambil") { _, _ -> ambilAntrian(loket) }
             .setNegativeButton("Batal", null)
             .show()
     }
 
     private fun ambilAntrian(loket: Loket) {
-        binding.btnAmbil.isEnabled     = false
-        binding.progressBar.visibility = View.VISIBLE
 
-        lifecycleScope.launch {
-            when (val result = repo.ambilAntrian(loket.idLoket)) {
-                is Result.Success -> {
-                    binding.progressBar.visibility = View.GONE
-                    val data = result.data
+        val current = session.getNomorLoket(loket.idLoket) + 1
+        session.saveNomorLoket(loket.idLoket, current)
 
-                    // Start background service pantau antrian
-                    WorkManagerHelper.startPeriodicCheck(requireContext())
+        val noAntrian = "A" + String.format("%03d", current)
 
-                    // Tampilkan dialog tiket
-                    TiketDialog(
-                        noAntrian  = data.antrian.noAntrian,
-                        namaLoket  = loket.nama,
-                        posisi     = data.posisi,
-                        estimasi   = data.estimasiMenit,
-                        tanggalJam = data.antrian.tanggalJam,
-                    ).show(parentFragmentManager, "tiket")
+        val tanggal = SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault())
+            .format(Date())
 
-                    loadLoket()
-                }
-                is Result.Error -> {
-                    binding.progressBar.visibility = View.GONE
-                    binding.btnAmbil.isEnabled     = true
-                    Toast.makeText(requireContext(), result.message, Toast.LENGTH_LONG).show()
-                }
-                else -> {}
-            }
-        }
+        session.saveTiket(
+            no = noAntrian,
+            loket = loket.nama,
+            posisi = current,
+            estimasi = current * 5,
+            tanggal = tanggal
+        )
+
+        val namaUser = session.getNama() ?: "User"
+
+        val pesan = "Halo $namaUser,\n\nNomor antrian Anda $noAntrian untuk layanan ${loket.nama} telah berhasil dibuat pada $tanggal.\n\n" +
+                "Saat ini Anda berada di posisi ke-$current dengan estimasi waktu tunggu sekitar ${current * 5} menit.\n\n" +
+                "Silakan menunggu dan pantau menu Monitor agar tidak terlewat."
+
+        notifHelper.showNotification("🎟️ Antrian Berhasil Diambil", pesan, false)
+
+        TiketDialog.newInstance(noAntrian, loket.nama, current, current * 5, tanggal)
+            .show(parentFragmentManager, "tiket")
+
+        Toast.makeText(requireContext(), "Nomor Antrian: $noAntrian", Toast.LENGTH_SHORT).show()
+
+        selectedLoket = null
+        binding.btnAmbil.isEnabled = false
+        binding.tvSelectedLoket.text = ""
     }
 
     override fun onDestroyView() {
